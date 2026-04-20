@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Archive — LIGHT ARCHIVE</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="static/css/archive.css" />
+  </head>
+  <body>
+    <svg class="svg-filters" aria-hidden="true" focusable="false" width="0" height="0">
+        <defs>
+            <filter id="roughen">
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.02"
+                    numOctaves="5"
+                    seed="3"
+                    result="noise">
+                </feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="3"
+                    xChannelSelector="R"
+                    yChannelSelector="G">
+                </feDisplacementMap>
+            </filter>
+        </defs>
+    </svg>
+    <div id="archive-map" aria-label="Archive map"></div>
+    <div class = "box"><a href="index.html">조명에 대한 기록</a></div>
+    <div class="popup-backdrop is-hidden"></div>
+    <div class = "pop-up-box is-hidden">
+        <div class="arrow left"></div>
+        <div class="arrow right"></div>
+        <div class="content-group">
+            <img class="picture" src="static/image/day/1.jpg" alt="Picture 1">
+            <img class="button" src="static/source/day/3.svg" alt="Picture 2">
+        </div>
+        <div class="close"></div>
+    </div>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
+    <script type="module" src="static/js/archive.js"></script>
+  </body>
+    
+</html>

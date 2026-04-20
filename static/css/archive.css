@@ -1,0 +1,242 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--archive-background, #fff);
+  color: var(--archive-foreground, #111);
+  font-family: "NanumSquareOTF", sans-serif;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+#archive-map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.box {
+  width: 100%;
+  height: clamp(56px, 10vh, 88px);
+  background: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: clamp(18px, 4vw, 40px);
+  padding-right: clamp(18px, 4vw, 40px);
+  box-sizing: border-box;
+}
+
+.box a {
+  display: inline-block;
+  color: #fff;
+  font-size: clamp(1.2rem, 1rem + 1.2vw, 2rem);
+  font-weight: 800;
+  text-decoration: none;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1px #ffffff;
+  text-stroke: 1.5px #ffffff;
+  filter: url(#roughen);
+}
+
+.popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: var(--popup-backdrop, rgba(255, 255, 255, 0.16));
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+.popup-backdrop.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pop-up-box {
+  position: fixed;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: min(500px, calc(100vw - 32px), calc((100vh - 112px) * 47 / 64));
+  aspect-ratio: 47 / 64;
+  height: auto;
+  background-color: var(--popup-background, #fff);
+  border: 1px solid var(--popup-border, #000);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease,
+    visibility 240ms ease;
+  will-change: opacity, transform;
+}
+
+.pop-up-box.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, -47%) scale(0.985);
+}
+
+.content-group {
+  width: min(100%, calc(100% - clamp(44px, 9vw, 72px)));
+  height: 97%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 24px);
+  transform: translateY(clamp(10px, 2vw, 16px));
+}
+
+.leaflet-control-attribution {
+  font-size: 11px;
+}
+
+.close {
+  position: absolute;
+  top: clamp(12px, 2vw, 18px);
+  left: clamp(12px, 2vw, 18px);
+  width: clamp(18px, 3vw, 24px);
+  height: clamp(18px, 3vw, 24px);
+  cursor: pointer;
+}
+
+.close::before,
+.close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--popup-line, #000);
+  transform-origin: center;
+}
+
+.close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.arrow {
+  position: absolute;
+  top: 45%;
+  width: clamp(20px, 3.5vw, 28px);
+  height: clamp(20px, 3.5vw, 28px);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.arrow::before,
+.arrow::after {
+  content: "";
+  position: absolute;
+  width: 65%;
+  height: 1px;
+  background: var(--popup-line, #000);
+  left: 18%;
+  transform-origin: left center;
+}
+
+.arrow.left {
+  left: clamp(12px, 2vw, 18px);
+}
+
+.arrow.left::before {
+  top: 50%;
+  transform: rotate(-45deg);
+}
+
+.arrow.left::after {
+  top: 50%;
+  transform: rotate(45deg);
+}
+
+.arrow.right {
+  right: clamp(12px, 2vw, 18px);
+}
+
+.arrow.right::before {
+  top: 50%;
+  left: auto;
+  right: 18%;
+  transform-origin: right center;
+  transform: rotate(45deg);
+}
+
+.arrow.right::after {
+  top: 50%;
+  left: auto;
+  right: 18%;
+  transform-origin: right center;
+  transform: rotate(-45deg);
+}
+
+.picture {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  height: 78%;
+  object-fit: contain;
+}
+
+.button {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  height: 8%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+body.is-night {
+  --archive-background: #050505;
+  --archive-foreground: #f3f1eb;
+  --popup-background: rgba(10, 10, 10, 0.92);
+  --popup-backdrop: rgba(5, 5, 5, 0.2);
+  --popup-line: #f3f1eb;
+}
+
+@media (min-width: 1280px) {
+  .pop-up-box {
+    width: min(580px, calc(100vw - 72px), calc((100vh - 84px) * 47 / 64));
+  }
+}
+
+@media (max-width: 640px) {
+  .pop-up-box {
+    top: calc(50% + 18px);
+    width: min(470px, calc(100vw - 24px), calc((100vh - 88px) * 47 / 64));
+  }
+
+  .picture {
+    height: 74%;
+  }
+
+  .button {
+    height: 7%;
+  }
+}

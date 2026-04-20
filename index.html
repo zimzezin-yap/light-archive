@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="static/css/main.css">
+</head>
+<body>
+    <svg class="svg-filters" aria-hidden="true" focusable="false" width="0" height="0">
+        <defs>
+            <filter id="roughen">
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.02"
+                    numOctaves="5"
+                    seed="3"
+                    result="noise">
+                </feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="3"
+                    xChannelSelector="R"
+                    yChannelSelector="G">
+                </feDisplacementMap>
+            </filter>
+        </defs>
+    </svg>
+    <main class="page">
+        <h1>조명에 대한 기록</h1>
+
+        <div class="click-box">
+        <img class="click-image" src="static/source/day/1.svg" alt="Image 1">
+        <p class="click-text">② 마우스로 버튼을 클릭하면 화면 모드를 전환 할 수 있습니다.</p>
+        <span class="arrow click-arrow" aria-hidden="true">
+            <span class="arrow-line"></span>
+            <span class="arrow-head"></span>
+        </span>
+        </div>
+
+        <div class="light-box">
+        <img class="light-image" src="static/source/day/2.svg" alt="Image 2">
+        <p class="light-text">① 이 프로젝트는 길을 걸으며 조명이 켜진 모습을 상상했던 사물들을
+        사진으로 기록한 작업입니다.</p>
+        <span class="arrow light-arrow" aria-hidden="true">
+            <span class="arrow-line"></span>
+            <span class="arrow-head"></span>
+        </span>
+        </div>
+        
+        <img class="button-image" src="static/source/day/3.svg" alt="Image 3">
+        <p class="go-to-archive">
+            <a href="archive.html">
+                <span class="go-to-archive-label">조명 보러 가기</span>
+                <span class="arrow archive-arrow" aria-hidden="true">
+                    <span class="arrow-line"></span>
+                    <span class="arrow-head"></span>
+                </span>
+            </a>
+        </p>
+    </main>
+    <script src="static/js/main.js"></script>
+    
+</body>
+</html>

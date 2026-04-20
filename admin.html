@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin - Light Archive</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        color: #222;
+        background: #f4f1ea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      main {
+        width: min(100%, 440px);
+        background: #fff;
+        border: 1px solid #ddd6c8;
+        border-radius: 8px;
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 20px;
+        font-size: 24px;
+      }
+
+      form {
+        display: grid;
+        gap: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #bdb6a8;
+        border-radius: 6px;
+        font: inherit;
+        background: #fff;
+      }
+
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 11px 14px;
+        font: inherit;
+        font-weight: 700;
+        color: #fff;
+        background: #222;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .top-bar h1 {
+        margin: 0;
+      }
+
+      .secondary-button {
+        width: auto;
+        color: #222;
+        background: #e5dfd3;
+      }
+
+      .message {
+        display: none;
+        margin-top: 16px;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .message.is-success {
+        display: block;
+        color: #155724;
+        background: #d4edda;
+      }
+
+      .message.is-error {
+        display: block;
+        color: #721c24;
+        background: #f8d7da;
+      }
+
+      .is-hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section id="login-section" class="is-hidden">
+        <h1>Admin Login</h1>
+        <form id="login-form">
+          <label>
+            Email
+            <input id="email" type="email" autocomplete="email" required />
+          </label>
+
+          <label>
+            Password
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+
+          <button id="login-button" type="submit">Log in</button>
+        </form>
+      </section>
+
+      <section id="admin-section" class="is-hidden">
+        <div class="top-bar">
+          <h1>Add Archive</h1>
+          <button id="logout-button" class="secondary-button" type="button">
+            Logout
+          </button>
+        </div>
+
+        <form id="archive-form">
+          <label>
+            Latitude
+            <input
+              id="latitude"
+              type="number"
+              step="any"
+              placeholder="37.5665"
+              required
+            />
+          </label>
+
+          <label>
+            Longitude
+            <input
+              id="longitude"
+              type="number"
+              step="any"
+              placeholder="126.9780"
+              required
+            />
+          </label>
+
+          <label>
+            Day image
+            <input id="day-image" type="file" accept="image/*" required />
+          </label>
+
+          <label>
+            Night image
+            <input id="night-image" type="file" accept="image/*" required />
+          </label>
+
+          <button id="submit-button" type="submit">Upload archive</button>
+        </form>
+      </section>
+
+      <p id="message" class="message"></p>
+    </main>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>
