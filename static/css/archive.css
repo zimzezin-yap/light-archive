@@ -106,6 +106,7 @@ body {
   justify-content: center;
   gap: clamp(12px, 2vw, 24px);
   transform: translateY(clamp(10px, 2vw, 16px));
+  z-index: 1;
 }
 
 .leaflet-control-attribution {
@@ -148,6 +149,8 @@ body {
   height: clamp(20px, 3.5vw, 28px);
   transform: translateY(-50%);
   cursor: pointer;
+  z-index: 2;
+  touch-action: manipulation;
 }
 
 .arrow::before,
@@ -230,6 +233,19 @@ body.is-night {
   .pop-up-box {
     top: calc(50% + 18px);
     width: min(470px, calc(100vw - 24px), calc((100vh - 88px) * 47 / 64));
+  }
+
+  .arrow {
+    width: 44px;
+    height: 44px;
+  }
+
+  .arrow.left {
+    left: 0;
+  }
+
+  .arrow.right {
+    right: 0;
   }
 
   .picture {
