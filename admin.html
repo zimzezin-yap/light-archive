@@ -22,7 +22,7 @@
       }
 
       main {
-        width: min(100%, 440px);
+        width: min(100%, 720px);
         background: #fff;
         border: 1px solid #ddd6c8;
         border-radius: 8px;
@@ -112,6 +112,74 @@
       .is-hidden {
         display: none;
       }
+
+      .archive-list-section {
+        margin-top: 30px;
+        padding-top: 24px;
+        border-top: 1px solid #ddd6c8;
+      }
+
+      .archive-list-section h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+      }
+
+      .archive-list {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .archive-item {
+        display: grid;
+        grid-template-columns: 64px 64px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid #ddd6c8;
+        border-radius: 6px;
+      }
+
+      .archive-item img {
+        width: 64px;
+        height: 64px;
+        border-radius: 4px;
+        object-fit: cover;
+        background: #eee;
+      }
+
+      .archive-coordinates {
+        min-width: 0;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .delete-button {
+        color: #fff;
+        background: #b42318;
+      }
+
+      .empty-list {
+        color: #666;
+        font-size: 14px;
+      }
+
+      @media (max-width: 560px) {
+        .archive-item {
+          grid-template-columns: 54px 54px 1fr;
+        }
+
+        .archive-item img {
+          width: 54px;
+          height: 54px;
+        }
+
+        .delete-button {
+          grid-column: 1 / -1;
+        }
+      }
     </style>
   </head>
   <body>
@@ -181,6 +249,12 @@
 
           <button id="submit-button" type="submit">Upload archive</button>
         </form>
+
+        <section class="archive-list-section" aria-labelledby="archive-list-title">
+          <h2 id="archive-list-title">Saved archives</h2>
+          <p id="archive-list-status" class="empty-list">Loading...</p>
+          <ul id="archive-list" class="archive-list"></ul>
+        </section>
       </section>
 
       <p id="message" class="message"></p>
