@@ -15,6 +15,8 @@ const logoutButton = document.getElementById("logout-button");
 const loginButton = document.getElementById("login-button");
 const submitButton = document.getElementById("submit-button");
 const message = document.getElementById("message");
+const archiveList = document.getElementById("archive-list");
+const archiveListStatus = document.getElementById("archive-list-status");
 
 function showMessage(text, type) {
   message.textContent = text;
@@ -34,7 +36,118 @@ function showLogin() {
 function showAdmin() {
   loginSection.classList.add("is-hidden");
   adminSection.classList.remove("is-hidden");
+  loadArchives();
 }
+
+function createArchiveItem(item) {
+  const listItem = document.createElement("li");
+  listItem.className = "archive-item";
+
+  [item.day_image_url, item.night_image_url].forEach((imageUrl, index) => {
+    const image = document.createElement("img");
+    image.src = imageUrl;
+    image.alt = index === 0 ? "Day image" : "Night image";
+    image.loading = "lazy";
+    listItem.appendChild(image);
+  });
+
+  const coordinates = document.createElement("span");
+  coordinates.className = "archive-coordinates";
+  coordinates.textContent = `#${item.id} · ${item.latitude}, ${item.longitude}`;
+  listItem.appendChild(coordinates);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "delete-button";
+  deleteButton.dataset.archiveId = item.id;
+  deleteButton.dataset.dayImageUrl = item.day_image_url || "";
+  deleteButton.dataset.nightImageUrl = item.night_image_url || "";
+  deleteButton.textContent = "Delete";
+  listItem.appendChild(deleteButton);
+
+  return listItem;
+}
+
+async function loadArchives() {
+  archiveList.replaceChildren();
+  archiveListStatus.hidden = false;
+  archiveListStatus.textContent = "Loading...";
+
+  const { data, error } = await supabase
+    .from("archives")
+    .select("id, latitude, longitude, day_image_url, night_image_url")
+    .order("id", { ascending: false });
+
+  if (error) {
+    archiveListStatus.textContent = `Failed to load: ${error.message}`;
+    return;
+  }
+
+  if (!data.length) {
+    archiveListStatus.textContent = "No saved archives.";
+    return;
+  }
+
+  archiveListStatus.hidden = true;
+  data.forEach((item) => archiveList.appendChild(createArchiveItem(item)));
+}
+
+function getStoragePath(publicUrl) {
+  if (!publicUrl) return null;
+
+  try {
+    const url = new URL(publicUrl);
+    const marker = `/storage/v1/object/public/${BUCKET_NAME}/`;
+    const markerIndex = url.pathname.indexOf(marker);
+    return markerIndex === -1
+      ? null
+      : decodeURIComponent(url.pathname.slice(markerIndex + marker.length));
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function deleteArchive(button) {
+  const archiveId = button.dataset.archiveId;
+  const confirmed = window.confirm(`Delete archive #${archiveId}? This cannot be undone.`);
+  if (!confirmed) return;
+
+  clearMessage();
+  button.disabled = true;
+  button.textContent = "Deleting...";
+
+  const { error: deleteError } = await supabase
+    .from("archives")
+    .delete()
+    .eq("id", archiveId);
+
+  if (deleteError) {
+    button.disabled = false;
+    button.textContent = "Delete";
+    showMessage(deleteError.message, "error");
+    return;
+  }
+
+  const imagePaths = [button.dataset.dayImageUrl, button.dataset.nightImageUrl]
+    .map(getStoragePath)
+    .filter(Boolean);
+  const { error: storageError } = imagePaths.length
+    ? await supabase.storage.from(BUCKET_NAME).remove(imagePaths)
+    : { error: null };
+
+  await loadArchives();
+  showMessage(
+    storageError
+      ? `Archive deleted, but image cleanup failed: ${storageError.message}`
+      : "Archive deleted successfully.",
+    storageError ? "error" : "success"
+  );
+}
+
+archiveList.addEventListener("click", (event) => {
+  const button = event.target.closest(".delete-button");
+  if (button) deleteArchive(button);
+});
 
 function getFileExtension(file) {
   const fileNameParts = file.name.split(".");
@@ -188,6 +301,7 @@ archiveForm.addEventListener("submit", async (event) => {
 
     archiveForm.reset();
     showMessage("Archive item added successfully.", "success");
+    await loadArchives();
   } catch (error) {
     showMessage(error.message || "Upload failed. Please try again.", "error");
   } finally {
