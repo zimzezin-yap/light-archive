@@ -228,6 +228,21 @@ body.is-night {
   --popup-line: #f3f1eb;
 }
 
+/* 클러스터 바깥 원 */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+/* 클러스터 안쪽 원 */
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: #000;
+  color: #fff;
+}
+
 @media (min-width: 1280px) {
   .pop-up-box {
     width: min(580px, calc(100vw - 72px), calc((100vh - 84px) * 47 / 64));
