@@ -14,15 +14,40 @@ const popupClose = document.querySelector(".close");
 const popupPrev = document.querySelector(".arrow.left");
 const popupNext = document.querySelector(".arrow.right");
 const THEME_STORAGE_KEY = "light-archive-theme";
+const ARCHIVE_CHANGE_STORAGE_KEY = "light-archive-data-change";
 const buttonSounds = [new Audio("static/sound/1.wav"), new Audio("static/sound/2.wav")];
 
 let currentTheme = getCurrentTheme();
 let currentItem = null;
 let archiveTileLayer = null;
 let archiveMapInstance = null;
+let archiveMarkerClusterGroup = null;
 let archiveItems = [];
 const archiveMarkers = [];
 let nextButtonSoundIndex = 0;
+let isArchiveRefreshScheduled = false;
+
+function refreshArchivePage() {
+  if (isArchiveRefreshScheduled) return;
+  isArchiveRefreshScheduled = true;
+  window.setTimeout(() => window.location.reload(), 100);
+}
+
+window.addEventListener("storage", (event) => {
+  if (event.key === ARCHIVE_CHANGE_STORAGE_KEY) {
+    refreshArchivePage();
+  }
+});
+
+supabase
+  .channel("public-archives-changes")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "archives" },
+    refreshArchivePage
+  )
+  .subscribe();
+
 async function loadArchiveItems() {
   const { data, error } = await supabase
     .from("archives")
@@ -247,19 +272,28 @@ async function initMap() {
 
   const markerBounds = [];
   const markerIcon = getMarkerIcon(currentTheme);
+  archiveMarkerClusterGroup = L.markerClusterGroup({
+    maxClusterRadius: 60,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    spiderfyOnMaxZoom: true,
+  });
 
   archiveItems.forEach((item) => {
     const marker = L.marker([item.lat, item.lng], {
       icon: markerIcon,
-    }).addTo(archiveMapInstance);
+    });
 
     archiveMarkers.push(marker);
+    archiveMarkerClusterGroup.addLayer(marker);
     markerBounds.push([item.lat, item.lng]);
 
     marker.on("click", () => {
       showPopup(item);
     });
   });
+
+  archiveMarkerClusterGroup.addTo(archiveMapInstance);
 
   if (markerBounds.length > 1) {
     archiveMapInstance.fitBounds(markerBounds, {
