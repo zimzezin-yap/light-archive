@@ -6,6 +6,7 @@ const supabase = createClient(
 );
 
 const BUCKET_NAME = "image";
+const ARCHIVE_CHANGE_STORAGE_KEY = "light-archive-data-change";
 
 const loginSection = document.getElementById("login-section");
 const adminSection = document.getElementById("admin-section");
@@ -17,6 +18,7 @@ const submitButton = document.getElementById("submit-button");
 const message = document.getElementById("message");
 const archiveList = document.getElementById("archive-list");
 const archiveListStatus = document.getElementById("archive-list-status");
+let archiveLoadRequestId = 0;
 
 function showMessage(text, type) {
   message.textContent = text;
@@ -69,7 +71,7 @@ function createArchiveItem(item) {
 }
 
 async function loadArchives() {
-  archiveList.replaceChildren();
+  const requestId = ++archiveLoadRequestId;
   archiveListStatus.hidden = false;
   archiveListStatus.textContent = "Loading...";
 
@@ -77,6 +79,10 @@ async function loadArchives() {
     .from("archives")
     .select("id, latitude, longitude, day_image_url, night_image_url")
     .order("id", { ascending: false });
+
+  if (requestId !== archiveLoadRequestId) return;
+
+  archiveList.replaceChildren();
 
   if (error) {
     archiveListStatus.textContent = `Failed to load: ${error.message}`;
@@ -89,7 +95,10 @@ async function loadArchives() {
   }
 
   archiveListStatus.hidden = true;
-  data.forEach((item) => archiveList.appendChild(createArchiveItem(item)));
+  const uniqueItems = [...new Map(data.map((item) => [String(item.id), item])).values()];
+  const fragment = document.createDocumentFragment();
+  uniqueItems.forEach((item) => fragment.appendChild(createArchiveItem(item)));
+  archiveList.appendChild(fragment);
 }
 
 function getStoragePath(publicUrl) {
@@ -134,6 +143,15 @@ async function deleteArchive(button) {
   const { error: storageError } = imagePaths.length
     ? await supabase.storage.from(BUCKET_NAME).remove(imagePaths)
     : { error: null };
+
+  try {
+    window.localStorage.setItem(
+      ARCHIVE_CHANGE_STORAGE_KEY,
+      JSON.stringify({ action: "delete", id: archiveId, timestamp: Date.now() })
+    );
+  } catch (_error) {
+    // The database deletion succeeded even if cross-tab notification is unavailable.
+  }
 
   await loadArchives();
   showMessage(
@@ -301,6 +319,14 @@ archiveForm.addEventListener("submit", async (event) => {
 
     archiveForm.reset();
     showMessage("Archive item added successfully.", "success");
+    try {
+      window.localStorage.setItem(
+        ARCHIVE_CHANGE_STORAGE_KEY,
+        JSON.stringify({ action: "insert", timestamp: Date.now() })
+      );
+    } catch (_error) {
+      // The archive was saved even if cross-tab notification is unavailable.
+    }
     await loadArchives();
   } catch (error) {
     showMessage(error.message || "Upload failed. Please try again.", "error");
