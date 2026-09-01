@@ -62,17 +62,57 @@ async function loadArchiveItems() {
     return [];
   }
 
-  return data.map((item) => ({
-    id: item.id,
-    lat: item.latitude,
-    lng: item.longitude,
-    dayImageSrc: item.day_image_url,
-    nightImageSrc: item.night_image_url,
-    imageAlt: "Archive image",
-    buttonSrc: "static/source/day/3.svg",
-    buttonAlt: "Toggle theme",
-    title: item.day_image_url || item.night_image_url || "Archive item",
-  }));
+  const items = data.map((item) => ({
+      id: item.id,
+      lat: Number(item.latitude),
+      lng: Number(item.longitude),
+      dayImageSrc: item.day_image_url,
+      nightImageSrc: item.night_image_url,
+      imageAlt: "Archive image",
+      buttonSrc: "static/source/day/3.svg",
+      buttonAlt: "Toggle theme",
+      title: item.day_image_url || item.night_image_url || "Archive item",
+    }));
+
+  return sortItemsByProximity(items);
+}
+
+function getGeographicDistance(a, b) {
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const deltaLat = lat2 - lat1;
+  const deltaLng = toRadians(b.lng - a.lng);
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+
+  return 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function sortItemsByProximity(items) {
+  if (items.length < 2) return items;
+
+  const remaining = items.slice(1);
+  const sorted = [items[0]];
+
+  while (remaining.length > 0) {
+    const current = sorted[sorted.length - 1];
+    let nearestIndex = 0;
+    let nearestDistance = getGeographicDistance(current, remaining[0]);
+
+    for (let index = 1; index < remaining.length; index += 1) {
+      const distance = getGeographicDistance(current, remaining[index]);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    }
+
+    sorted.push(remaining.splice(nearestIndex, 1)[0]);
+  }
+
+  return sorted;
 }
 
 function getCurrentTheme() {
@@ -113,15 +153,21 @@ function applyArchiveTheme(theme) {
   document.body.classList.toggle("is-night", theme === "night");
 }
 
-function getProviderName(theme) {
-  return theme === "night" ? "CartoDB.DarkMatter" : "CartoDB.Positron";
+function createArchiveTileLayer(theme) {
+  const style = theme === "night" ? "dark" : "positron";
+
+  return L.maplibreGL({
+    style: `https://tiles.openfreemap.org/styles/${style}`,
+    attribution:
+      '<a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  });
 }
 
 function getMarkerIcon(theme) {
   return L.icon({
     iconUrl: swapThemeAssetPath("static/source/day/10.svg", theme),
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
+    iconSize: [24, 36],
+    iconAnchor: [12, 36],
     popupAnchor: [0, -36],
   });
 }
@@ -217,8 +263,7 @@ if (popupNext) {
   });
 }
 
-if (popupButton) {
-  popupButton.addEventListener("click", () => {
+function toggleArchiveTheme() {
     playNextButtonSound();
     currentTheme = currentTheme === "day" ? "night" : "day";
     persistTheme(currentTheme);
@@ -229,9 +274,9 @@ if (popupButton) {
         archiveMapInstance.removeLayer(archiveTileLayer);
       }
 
-      archiveTileLayer = L.tileLayer
-        .provider(getProviderName(currentTheme))
-        .addTo(archiveMapInstance);
+      archiveTileLayer = createArchiveTileLayer(currentTheme).addTo(
+        archiveMapInstance,
+      );
 
       const nextMarkerIcon = getMarkerIcon(currentTheme);
       archiveMarkers.forEach((marker) => {
@@ -242,7 +287,83 @@ if (popupButton) {
     if (currentItem) {
       showPopup(currentItem);
     }
+}
+
+function renderArchiveMarkers() {
+  if (!archiveMapInstance || !archiveMarkerClusterGroup) return;
+
+  archiveMarkerClusterGroup.clearLayers();
+  archiveMarkers.length = 0;
+
+  const groups = [];
+  const zoom = archiveMapInstance.getZoom();
+
+  archiveItems.forEach((item) => {
+    const point = archiveMapInstance.project([item.lat, item.lng], zoom);
+    const group = groups.find(
+      (candidate) => point.distanceTo(candidate.point) <= 60,
+    );
+
+    if (group) {
+      group.items.push(item);
+      const count = group.items.length;
+      group.point = L.point(
+        (group.point.x * (count - 1) + point.x) / count,
+        (group.point.y * (count - 1) + point.y) / count,
+      );
+    } else {
+      groups.push({ items: [item], point });
+    }
   });
+
+  const markerIcon = getMarkerIcon(currentTheme);
+
+  groups.forEach((group) => {
+    if (group.items.length === 1) {
+      const item = group.items[0];
+      const marker = L.marker([item.lat, item.lng], {
+        icon: markerIcon,
+        pane: "archiveMarkerPane",
+        zIndexOffset: 1000,
+      }).on("click", () => showPopup(item));
+
+      archiveMarkers.push(marker);
+      archiveMarkerClusterGroup.addLayer(marker);
+      return;
+    }
+
+    const center = archiveMapInstance.unproject(group.point, zoom);
+    const cluster = L.marker(center, {
+      pane: "archiveMarkerPane",
+      zIndexOffset: 1000,
+      icon: L.divIcon({
+        className: "archive-marker-cluster",
+        html: `<span>${group.items.length}</span>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+      }),
+    }).on("click", () => {
+      const bounds = L.latLngBounds(
+        group.items.map((item) => [item.lat, item.lng]),
+      );
+      if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+        archiveMapInstance.setView(center, Math.min(zoom + 2, 19), {
+          animate: true,
+        });
+      } else {
+        archiveMapInstance.fitBounds(bounds, {
+          padding: [80, 80],
+          animate: true,
+        });
+      }
+    });
+
+    archiveMarkerClusterGroup.addLayer(cluster);
+  });
+}
+
+if (popupButton) {
+  popupButton.addEventListener("click", toggleArchiveTheme);
 }
 
 async function initMap() {
@@ -264,36 +385,27 @@ async function initMap() {
     scrollWheelZoom: true,
   }).setView([initialItem.lat, initialItem.lng], 16);
 
+  archiveMapInstance.getPane("tilePane").style.zIndex = "200";
+  archiveMapInstance.getPane("tooltipPane").style.zIndex = "700";
+  archiveMapInstance.getPane("popupPane").style.zIndex = "750";
+  archiveMapInstance.createPane("archiveMarkerPane");
+  archiveMapInstance.getPane("archiveMarkerPane").style.zIndex = "1000";
+
   applyArchiveTheme(currentTheme);
 
-  archiveTileLayer = L.tileLayer
-    .provider(getProviderName(currentTheme))
-    .addTo(archiveMapInstance);
+  archiveTileLayer = createArchiveTileLayer(currentTheme).addTo(
+    archiveMapInstance,
+  );
 
   const markerBounds = [];
-  const markerIcon = getMarkerIcon(currentTheme);
-  archiveMarkerClusterGroup = L.markerClusterGroup({
-    maxClusterRadius: 60,
-    showCoverageOnHover: false,
-    zoomToBoundsOnClick: true,
-    spiderfyOnMaxZoom: true,
-  });
-
+  archiveMarkerClusterGroup = L.layerGroup();
   archiveItems.forEach((item) => {
-    const marker = L.marker([item.lat, item.lng], {
-      icon: markerIcon,
-    });
-
-    archiveMarkers.push(marker);
-    archiveMarkerClusterGroup.addLayer(marker);
     markerBounds.push([item.lat, item.lng]);
-
-    marker.on("click", () => {
-      showPopup(item);
-    });
   });
 
   archiveMarkerClusterGroup.addTo(archiveMapInstance);
+  renderArchiveMarkers();
+  archiveMapInstance.on("zoomend resize", renderArchiveMarkers);
 
   if (markerBounds.length > 1) {
     archiveMapInstance.fitBounds(markerBounds, {
