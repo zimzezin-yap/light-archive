@@ -20,6 +20,39 @@ body {
   z-index: 0;
 }
 
+.leaflet-gl-layer.maplibregl-map {
+  z-index: 0 !important;
+}
+
+.leaflet-marker-pane,
+.leaflet-shadow-pane {
+  z-index: 650 !important;
+}
+
+.leaflet-marker-icon {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.archive-marker-cluster {
+  display: grid !important;
+  place-items: center;
+  width: 30px !important;
+  height: 30px !important;
+  border: 3px solid rgba(0, 0, 0, 0.24);
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: #000;
+  color: #fff;
+  font: 700 13px/1 "NanumSquareOTF", sans-serif;
+}
+
+body.is-night .archive-marker-cluster {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: #fff;
+  color: #000;
+}
+
 .box {
   width: 100%;
   height: clamp(56px, 10vh, 88px);
