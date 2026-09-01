@@ -12,13 +12,9 @@
     />
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+      href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    />
-    <link rel="stylesheet" href="static/css/archive.css" />
+    <link rel="stylesheet" href="static/css/archive.css?v=11" />
   </head>
   <body>
     <svg class="svg-filters" aria-hidden="true" focusable="false" width="0" height="0">
@@ -42,7 +38,9 @@
         </defs>
     </svg>
     <div id="archive-map" aria-label="Archive map"></div>
-    <div class = "box"><a href="index.html">조명에 대한 기록</a></div>
+    <div class="box">
+      <a href="index.html">조명에 대한 기록</a>
+    </div>
     <div class="popup-backdrop is-hidden"></div>
     <div class = "pop-up-box is-hidden">
         <div class="arrow left"></div>
@@ -58,9 +56,9 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
-    <script type="module" src="static/js/archive.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js"></script>
+    <script type="module" src="static/js/archive.js?v=16"></script>
   </body>
     
 </html>
